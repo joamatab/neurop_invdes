@@ -49,9 +49,9 @@ class UNetModel(nn.Module):
     def __init__(self, alpha, num_down_conv, hidden_dim, outc):
         super().__init__()
         config = []
+        kernel_size = 3
         for block in range(num_down_conv):
 
-            kernel_size = 3
             out_channels = (2**block) * hidden_dim
             if block == 0:
                 config += [
@@ -173,7 +173,7 @@ class UNetModel(nn.Module):
         self.lr_scheduler = None  # will be initialized in waveynet_trainer.py
         self.residual_terms = None  # to store the residual connect for addition later
 
-        for i, (name, param) in enumerate(self.config):
+        for name, param in self.config:
             if name == "conv2d":
                 # [ch_out, ch_in, kernelsz, kernelsz]
                 w = nn.Parameter(torch.ones(*param[:4]), requires_grad=True)

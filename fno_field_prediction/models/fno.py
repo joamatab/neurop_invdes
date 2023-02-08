@@ -72,10 +72,9 @@ class FNOModel(nn.Module):
         self.pad_out = self.get_pad(-padding)
 
     def get_fno_blocks(self, blocks, modes, width):
-        fno_blocks = nn.Sequential(
+        return nn.Sequential(
             *[self.get_fno_block(modes, width) for _ in range(blocks)]
         )
-        return fno_blocks
 
     def forward(self, x):
         x = self.conv_in(x)

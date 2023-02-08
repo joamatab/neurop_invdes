@@ -14,7 +14,7 @@ def get_group_masters():
     comm = MPI.COMM_WORLD
     num_workers = comm.Get_size()
 
-    is_group_master = True if mp.my_rank() == 0 else False
+    is_group_master = mp.my_rank() == 0
     group_master_idx = np.zeros((num_workers,), dtype=np.bool_)
 
     smsg = [np.array([is_group_master]), ([1] * num_workers, [0] * num_workers)]
@@ -22,9 +22,7 @@ def get_group_masters():
 
     comm.Alltoallv(smsg, rmsg)
 
-    group_masters = np.arange(num_workers)[group_master_idx]
-
-    return group_masters
+    return np.arange(num_workers)[group_master_idx]
 
 
 def blob(shape, sigma, dtype="?"):
@@ -47,32 +45,30 @@ def main(args):
         with h5py.File(args.from_dataset, "r") as f:
             samples = sorted(list(f.keys()))
             shape = np.array(f[samples[0]][args.dataset_key]).shape
-        samples = {
-            k: v
-            for k, v in zip(
+        samples = dict(
+            zip(
                 group_masters,
                 np.array_split(samples[: args.n_samples], args.n_parallel),
             )
-        }
+        )
     else:
         if args.uuid:
-            samples = {
-                k: v
-                for k, v in zip(
+            samples = dict(
+                zip(
                     group_masters,
                     np.array_split(
-                        [uuid4() for _ in range(args.n_samples)], args.n_parallel
+                        [uuid4() for _ in range(args.n_samples)],
+                        args.n_parallel,
                     ),
                 )
-            }
+            )
         else:
-            samples = {
-                k: v
-                for k, v in zip(
+            samples = dict(
+                zip(
                     group_masters,
                     np.array_split(np.arange(args.n_samples), args.n_parallel),
                 )
-            }
+            )
         shape = [int(args.sim_res * e) for e in args.design_extent]
 
     worker_map = {
@@ -82,7 +78,7 @@ def main(args):
     if mp.am_master():
         my_master = rank
     else:
-        my_master = [k for k in worker_map.keys() if rank in worker_map[k]][0]
+        my_master = [k for k in worker_map if rank in worker_map[k]][0]
 
     for key in samples[my_master]:
         if mp.am_master():
