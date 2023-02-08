@@ -109,8 +109,7 @@ class MaxwellLoss(torch.nn.Module):
         """Note that this expects real input like (B, 2, H, W)"""
         ez_ = torch.view_as_complex(ez.permute(0, 2, 3, 1).contiguous())
         ez_hat = self.ez_to_ez_fun(ez_, eps)
-        loss = self.loss_fn(ez_[..., 1:-1, 1:-1], ez_hat[..., 1:-1, 1:-1])
-        return loss
+        return self.loss_fn(ez_[..., 1:-1, 1:-1], ez_hat[..., 1:-1, 1:-1])
 
     @staticmethod
     def dxb(x):
@@ -144,8 +143,7 @@ class MaxwellLoss(torch.nn.Module):
     def ez_to_ez_explicit(self, ez, eps):
         hx = self.ez_to_hx(ez)
         hy = self.ez_to_hy(ez)
-        ez_hat = self.hxhy_to_ez(hx, hy, eps) * self.const_fac
-        return ez_hat
+        return self.hxhy_to_ez(hx, hy, eps) * self.const_fac
 
     def ez_to_ez_conv(self, ez, eps):
         k = torch.tensor(

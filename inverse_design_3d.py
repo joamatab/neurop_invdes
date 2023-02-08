@@ -101,9 +101,7 @@ def optimize_adamw(x0, vae, fno, mask, args):
 
 
 def gather(ary, root=0):
-    recv = None
-    if RANK == 0:
-        recv = np.empty([SIZE, *ary.shape], dtype=ary.dtype)
+    recv = np.empty([SIZE, *ary.shape], dtype=ary.dtype) if RANK == 0 else None
     COMM.Gather(ary, recv, root=root)
     if RANK == 0:
         recv = np.reshape(recv, (-1, *recv.shape[2:]))

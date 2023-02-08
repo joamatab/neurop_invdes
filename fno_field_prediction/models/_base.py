@@ -61,27 +61,19 @@ class BaseModel(pl.LightningModule):
                 base_momentum=0.85,
                 max_momentum=0.95,
             )
-            conf.update(
-                {
-                    "lr_scheduler": {
-                        "scheduler": scheduler,
-                        "interval": "epoch",
-                        "frequency": 1,
-                    }
-                }
-            )
+            conf["lr_scheduler"] = {
+                "scheduler": scheduler,
+                "interval": "epoch",
+                "frequency": 1,
+            }
 
         elif self.hparams.scheduler == "exponential":
             scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
-            conf.update(
-                {
-                    "lr_scheduler": {
-                        "scheduler": scheduler,
-                        "interval": "epoch",
-                        "frequency": 1,
-                    }
-                }
-            )
+            conf["lr_scheduler"] = {
+                "scheduler": scheduler,
+                "interval": "epoch",
+                "frequency": 1,
+            }
         else:
             raise ValueError(f"Invalid scheduler: {self.hparams.scheduler}")
 
@@ -208,10 +200,9 @@ class VAEBase(pl.LightningModule):
     def _get_annealed_weight(self, batch_idx, weight, params):
         if params is None or weight == 0.0:
             return weight
-        else:
-            minimum, slope, offset = params
-            offset *= self.hparams.steps
-            return self._sigmoid_anneal(batch_idx, minimum, weight, slope, offset)
+        minimum, slope, offset = params
+        offset *= self.hparams.steps
+        return self._sigmoid_anneal(batch_idx, minimum, weight, slope, offset)
 
     def _sample(self, x):
         mu = self.fc_mu(x)
